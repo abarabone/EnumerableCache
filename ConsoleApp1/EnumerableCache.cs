@@ -13,42 +13,27 @@ namespace Abss.UtilityOther
 	// みたいなのを持っておけばいいかな？と思ったけど、これだと calcLengths( source ) とした時に
 	// はじめて Linq のオペレータオブジェクトが生成されるので、やっぱりキャッシュオブジェクトは必要。
 
+	// List<T> とかならオペレータをキャッシュして、中身だけ変えればいい。
+
 	// List<T> のような、struct enumerator の場合はどうやって扱っていいのだろうか
 	// Linq でも結局ボクシングしてるのかな？
 
+	
 	/// <summary>
 	/// 列挙ソースのレイトバインディングを可能にする。
 	/// </summary>
 	public struct LateBindEnumerable<T, TEnumerator> : IEnumerable<T>
-		where TEnumerator : struct, IEnumerator<T>, IDisposable
+		where TEnumerator : IEnumerator<T>
 	{
-		
-		public IEnumerable<T> EnumerableSource;
+
+		public Func<TEnumerator>	GetEnumeratorFunc;
 
 
 		[MethodImpl( MethodImplOptions.AggressiveInlining )]
 		public TEnumerator GetEnumerator()
 		{
-			return (TEnumerator)EnumerableSource.GetEnumerator();
+			return GetEnumeratorFunc();
 		}
-
-		[MethodImpl( MethodImplOptions.AggressiveInlining )]
-		IEnumerator<T> IEnumerable<T>.GetEnumerator()
-		{
-			return EnumerableSource.GetEnumerator();
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return EnumerableSource.GetEnumerator();
-		}
-	}
-	public struct LateBindEnumerable<T> : IEnumerable<T>
-	{
-
-		public IEnumerable<T> EnumerableSource;
-		
 		
 		[MethodImpl( MethodImplOptions.AggressiveInlining )]
 		IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -122,18 +107,38 @@ namespace Abss.UtilityOther
 			return enumerableCache.Query( enumerableSource );
 		}
 
-		static public List<T>.Enumerator GetEnumerator2<T>( this List<T> source )
+		/// <summary>
+		/// 
+		/// </summary>
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		static public IEnumerable<Tdst> QueryWith<Tsrc, Tdst, TEnumerator>
+			( this Func<TEnumerator> getEnumerator, EnumerableCache<Tsrc, Tdst, TEnumerator> enumerableCache )
+			where TEnumerator : struct, IEnumerator<Tsrc>
 		{
-			return source.GetEnumerator();
+			return enumerableCache.Query( getEnumerator );
 		}
-		static public TEnumerator GetEnumerator<T, TEnumerator>( IEnumerable<T> source )
+
+		static public void ToCache( ref this TEnumerableCache )
 		{
-			return (TEnumerator)source.GetEnumerator();
+
 		}
-		static public EnumerableCache<T> CreateEnumerableCache<T, TEnumerator>( this IEnumerable<T> source )
-		{
-			return new EnumerableCache<T,TEnumerator>();
-		}
+
+		//static public EnumerableCache<Tsrc, Tdst> ToCache<Tsrc, Tdst>( this IEnumerable<Tdst> expression )
+		//{
+		//	var cache	= new EnumerableCache<Tsrc, Tdst>();
+		//	cache.query	= expression;
+		//	return cache;
+		//}
+
+		//static public EnumerableCache<Tsrc, Tdst, TEnumerator> ToCache<Tsrc, Tdst, TEnumerator>
+		//	( this IEnumerable<Tdst> expression )
+		//	where TEnumerator : struct, IEnumerator<Tsrc>
+		//{
+		//	var cache	= new EnumerableCache<Tsrc, Tdst, TEnumerator>();
+		//	cache.query	= expression;
+		//	return cache;
+		//}
+
 	}
 }
 
