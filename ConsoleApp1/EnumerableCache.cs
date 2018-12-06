@@ -28,58 +28,68 @@ namespace Abss.UtilityOther
 
 		public Func<TEnumerator>	GetEnumeratorFunc;
 
+		
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		public TEnumerator GetEnumerator() => GetEnumeratorFunc();
+		
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumeratorFunc();
+		
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumeratorFunc();
 
-		[MethodImpl( MethodImplOptions.AggressiveInlining )]
-		public TEnumerator GetEnumerator()
-		{
-			return GetEnumeratorFunc();
-		}
-		
-		[MethodImpl( MethodImplOptions.AggressiveInlining )]
-		IEnumerator<T> IEnumerable<T>.GetEnumerator()
-		{
-			return GetEnumeratorFunc();
-		}
-		
-		[MethodImpl( MethodImplOptions.AggressiveInlining )]
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumeratorFunc();
-		}
 	}
 
+	
 
 	/// <summary>
 	/// ＬＩＮＱオブジェクトをキャッシュする。
 	/// </summary>
-	public struct EnumerableCache<Tsrc, Tdst, TEnumerator>
+	public struct EnumerableCache<Tsrc, Tdst, TEnumerator> : IEnumerable<Tsrc>
 		where TEnumerator : IEnumerator<Tsrc>
 	{
+		
+		Func<TEnumerator>			getEnumeratorFunc;
+		
+		public IEnumerable<Tdst>	query;
 
-		public LateBindEnumerable<Tsrc, TEnumerator> enumerable;	// 列挙ソースを
+		
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		public TEnumerator GetEnumerator() => getEnumeratorFunc();
+		
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		IEnumerator<Tsrc> IEnumerable<Tsrc>.GetEnumerator() => getEnumeratorFunc();
+		
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		IEnumerator IEnumerable.GetEnumerator() => getEnumeratorFunc();
 
-		//public Func<LateBindEnumerable<Tsrc, TEnumerator>, IEnumerable<Tdst>>	query;
-		public IEnumerable<Tdst> query;// オペレータ
-
-
+		
 		/// <summary>
 		/// ソースを決定し、ＬＩＮＱクエリを実行する。
 		/// </summary>
 		[MethodImpl( MethodImplOptions.AggressiveInlining )]
 		public IEnumerable<Tdst> Query( Func<TEnumerator> getEnumerator )
 		{
-			this.enumerable.GetEnumeratorFunc = getEnumerator;
+			this.getEnumeratorFunc = getEnumerator;
 
 			return this.query;
 		}
+		
 	}
 
-	public struct EnumerableCache<Tsrc, Tdst>
+	public struct EnumerableCache<Tsrc, Tdst> : IEnumerable<Tsrc>
 	{
-
-		LateBindEnumerable<Tsrc, IEnumerator<Tsrc>> enumerable;	// 列挙ソースを
-
-		public IEnumerable<Tdst> query;							// オペレータ
+		
+		Func<IEnumerator<Tsrc>>		getEnumeratorFunc;
+		
+		public IEnumerable<Tdst>	query;
+		
+		
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		IEnumerator<Tsrc> IEnumerable<Tsrc>.GetEnumerator() => getEnumeratorFunc();
+		
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		IEnumerator IEnumerable.GetEnumerator() => getEnumeratorFunc();
 
 
 		/// <summary>
@@ -88,7 +98,7 @@ namespace Abss.UtilityOther
 		[MethodImpl( MethodImplOptions.AggressiveInlining )]
 		public IEnumerable<Tdst> Query( IEnumerable<Tsrc> source )
 		{
-			this.enumerable.GetEnumeratorFunc = source.GetEnumerator;
+			this.getEnumeratorFunc = source.GetEnumerator;
 
 			return this.query;
 		}
@@ -118,9 +128,17 @@ namespace Abss.UtilityOther
 			return enumerableCache.Query( getEnumerator );
 		}
 
-		static public void ToCache( ref this TEnumerableCache )
+		static public void ToCache<Tsrc, Tdst, TEnumerator>
+			( this IEnumerable<Tdst> query, ref EnumerableCache<Tsrc, Tdst, TEnumerator> cache )
+			where TEnumerator : struct, IEnumerator<Tsrc>
 		{
+			cache.query = query;
+		}
 
+		static public void ToCache<Tsrc, Tdst>
+			( this IEnumerable<Tdst> query, ref EnumerableCache<Tsrc, Tdst> cache )
+		{
+			cache.query = query;
 		}
 
 		//static public EnumerableCache<Tsrc, Tdst> ToCache<Tsrc, Tdst>( this IEnumerable<Tdst> expression )

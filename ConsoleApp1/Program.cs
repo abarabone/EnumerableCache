@@ -13,10 +13,12 @@ namespace ConsoleApp1
 		static void Main( string[] args )
 		{
 			var e = new EnumerableCache<int,int,List<int>.Enumerator>();
-			e.query = e.enumerable.Select( x => x ).ToCache();
+			e.Select( x => x ).ToCache( ref e );
 
 			var n = Enumerable.Range(0,2).ToList();
-			foreach( var i in q.Query(e.GetEnumerator) ) Console.WriteLine( i );
+			var m = Enumerable.Range(5,5).ToList();
+			foreach( var i in e.Query(n.GetEnumerator) ) Console.WriteLine( i );
+			foreach( var i in e.Query(m.GetEnumerator) ) Console.WriteLine( i );
 			Console.ReadKey();
 		}
 	}
