@@ -12,17 +12,13 @@ namespace ConsoleApp1
 	{
 		static void Main( string[] args )
 		{
-			var q = new LateBindEnumerable<int>();
+			var e = new EnumerableCache<int,int,List<int>.Enumerator>();
+			e.query = e.enumerable.Select( x => x ).ToCache();
 
-			q.EnumerableSource = Enumerable.Range( 0, 10 );
-
-			foreach( var i in q ) Console.WriteLine( i );
+			var n = Enumerable.Range(0,2).ToList();
+			foreach( var i in q.Query(e.GetEnumerator) ) Console.WriteLine( i );
 			Console.ReadKey();
 		}
-
-		void aaa()
-		{
-			var e = new List<int>().GetEnumerator();
-		}
 	}
+	
 }
