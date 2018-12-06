@@ -12,26 +12,38 @@ namespace Abss.UtilityOther
 	//				;
 	// みたいなのを持っておけばいいかな？と思ったけど、これだと calcLengths( source ) とした時に
 	// はじめて Linq のオペレータオブジェクトが生成されるので、やっぱりキャッシュオブジェクトは必要。
-	
+
 	// List<T> のような、struct enumerator の場合はどうやって扱っていいのだろうか
 	// Linq でも結局ボクシングしてるのかな？
-	
+
 	/// <summary>
 	/// 列挙ソースのレイトバインディングを可能にする。
 	/// </summary>
-	//public struct LateBindEnumerable<T, TEnumerator>
-	//	where TEnumerator : struct, IEnumerator<T>, IDisposable, IEnumerator
-	//{
-
-	//	public IEnumerable<T> EnumerableSource;
+	public struct LateBindEnumerable<T, TEnumerator> : IEnumerable<T>
+		where TEnumerator : struct, IEnumerator<T>, IDisposable
+	{
 		
+		public IEnumerable<T> EnumerableSource;
 
-	//	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	//	public TEnumerator GetEnumerator()
-	//	{
-	//		return (TEnumerator)EnumerableSource.GetEnumerator();
-	//	}
-	//}
+
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		public TEnumerator GetEnumerator()
+		{
+			return (TEnumerator)EnumerableSource.GetEnumerator();
+		}
+
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		IEnumerator<T> IEnumerable<T>.GetEnumerator()
+		{
+			return EnumerableSource.GetEnumerator();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return EnumerableSource.GetEnumerator();
+		}
+	}
 	public struct LateBindEnumerable<T> : IEnumerable<T>
 	{
 
@@ -108,6 +120,19 @@ namespace Abss.UtilityOther
 			( this IEnumerable<Tsrc> enumerableSource, EnumerableCache<Tsrc, Tdst> enumerableCache )
 		{
 			return enumerableCache.Query( enumerableSource );
+		}
+
+		static public List<T>.Enumerator GetEnumerator2<T>( this List<T> source )
+		{
+			return source.GetEnumerator();
+		}
+		static public TEnumerator GetEnumerator<T, TEnumerator>( IEnumerable<T> source )
+		{
+			return (TEnumerator)source.GetEnumerator();
+		}
+		static public EnumerableCache<T> CreateEnumerableCache<T, TEnumerator>( this IEnumerable<T> source )
+		{
+			return new EnumerableCache<T,TEnumerator>();
 		}
 	}
 }
