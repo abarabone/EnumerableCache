@@ -23,17 +23,14 @@ namespace Abss.UtilityOther
 		
 		Func<TEnumerator>			getEnumeratorFunc;	// どうやっても struct 版の GetEnumerator() を使用させる方法が
 														// 思いつかなかったため…
-		
 		public IEnumerable<Tdst>	query;
 
 		
 		[MethodImpl( MethodImplOptions.AggressiveInlining )]
 		public TEnumerator GetEnumerator() => getEnumeratorFunc();// 結局ＬＩＮＱからはこいつが呼ばれてくれない
 		
-		[MethodImpl( MethodImplOptions.AggressiveInlining )]
 		IEnumerator<Tsrc> IEnumerable<Tsrc>.GetEnumerator() => getEnumeratorFunc();
 		
-		[MethodImpl( MethodImplOptions.AggressiveInlining )]
 		IEnumerator IEnumerable.GetEnumerator() => getEnumeratorFunc();
 
 		
@@ -68,6 +65,7 @@ namespace Abss.UtilityOther
 		/// <summary>
 		/// ＬＩＮＱオペレータを、渡されたキャッシュオブジェクトにセットする。
 		/// </summary>
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
 		static public void ToCache<Tsrc, Tdst, TEnumerator>
 			( this IEnumerable<Tdst> query, EnumerableCache<Tsrc, Tdst, TEnumerator> cache )
 			where TEnumerator : struct, IEnumerator<Tsrc>

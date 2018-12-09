@@ -16,6 +16,9 @@ namespace Abss.UtilityOther
 	// みたいなのを持っておけばいいかな？と思ったけど、これだと calcLengths( source ) とした時に
 	// はじめて Linq のオペレータオブジェクトが生成されるので、やっぱりキャッシュオブジェクトは必要。
 
+	// しかし、Linq の各オペレータのイテレータブロックで毎回 class enumerator が生成されるだろうから、
+	// ここまでする意味はないのかも（気にするなら Linq 使うな、っていう）
+
 	
 	/// <summary>
 	/// ＬＩＮＱオブジェクトをキャッシュする。
@@ -28,10 +31,8 @@ namespace Abss.UtilityOther
 		internal IEnumerable<Tdst>	query;
 		
 		
-		[MethodImpl( MethodImplOptions.AggressiveInlining )]
 		IEnumerator<Tsrc> IEnumerable<Tsrc>.GetEnumerator() => enumerableSource.GetEnumerator();
 		
-		[MethodImpl( MethodImplOptions.AggressiveInlining )]
 		IEnumerator IEnumerable.GetEnumerator() => enumerableSource.GetEnumerator();
 
 
@@ -45,6 +46,19 @@ namespace Abss.UtilityOther
 
 			return this.query;
 		}
+		
+		/// <summary>
+		/// ＬＩＮＱオペレータをセットする。
+		/// </summary>
+		[MethodImpl( MethodImplOptions.AggressiveInlining )]
+		public EnumerableCache<Tsrc, Tdst> SetQuery
+			( Func<EnumerableCache<Tsrc, Tdst>, IEnumerable<Tdst>> setOperationFunc )
+		{
+			this.query = setOperationFunc( this );
+
+			return this;
+		}
+		
 	}
 	
 	
@@ -60,16 +74,7 @@ namespace Abss.UtilityOther
 		{
 			return enumerableCache.Query( enumerableSource );
 		}
-		
-		/// <summary>
-		/// ＬＩＮＱオペレータを、渡されたキャッシュオブジェクトにセットする。
-		/// </summary>
-		static public void ToCache<Tsrc, Tdst>
-			( this IEnumerable<Tdst> query, EnumerableCache<Tsrc, Tdst> cache )
-		{
-			cache.query = query;
-		}
-		
+
 	}
 }
 
